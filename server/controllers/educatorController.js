@@ -117,7 +117,7 @@ export const getEnrolledStudentsData = async(req,res)=>{
             status: 'completed'
         }).populate('userId','name imageUrl').populate('courseId','courseTitle')
         
-        const enrolledStudents = purchases.map(purchase => ({
+        const enrolledStudents = purchase.map(purchase => ({
             student:purchase.userId,
             courseTitle:purchase.courseId.courseTitle,
             purchaseDate: purchase.createdAt
