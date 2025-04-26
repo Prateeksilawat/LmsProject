@@ -17,8 +17,19 @@ const app = express()
 await connectDB()
 await connectCloudinary()
 
+//cors
+const allowedOrigins = ['https://lms-frontend-zeta-flax.vercel.app'];
 //Middlewares
-app.use(cors())
+app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true, // if you are using cookies/auth
+  }));
 app.use(clerkMiddleware())
 
 //Routes
