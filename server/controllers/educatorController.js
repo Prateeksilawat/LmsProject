@@ -23,34 +23,45 @@ export const updateRoleToEducator = async (req,res)=>{
 
 
 //Add New Course
-export const addCourse = async (req, res) =>{
+export const addCourse = async (req, res) => {
     try {
-        const {courseData} = req.body
-        const imageFile = req.file
-        const educatorId = req.auth.userId
-
-        if(!imageFile){
-            return res.json({success : false,
-                message:'Thumbnail Not Attached'
-            })
-        }
-
-        const parsedCourseData = await JSON.parse(courseData)
-        parsedCourseData.educator = educatorId
-        const newCourse = await Course.create(parsedCourseData)
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path)
-        newCourse.courseThumbnail = imageUpload.secure_url
-        await newCourse.save()
-
-        res.json({success : true, message:'Course Added'})
-
-
+      const { courseData } = req.body;
+      const imageFile = req.file;
+      const educatorId = req.auth.userId;
+  
+      if (!imageFile) {
+        return res.json({
+          success: false,
+          message: 'Thumbnail Not Attached',
+        });
+      }
+  
+      const parsedCourseData = JSON.parse(courseData);
+      parsedCourseData.educator = educatorId;
+      const newCourse = await Course.create(parsedCourseData);
+  
+      const uploadFromBuffer = (fileBuffer) => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          });
+          streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+        });
+      };
+  
+      const imageUpload = await uploadFromBuffer(imageFile.buffer); // <== Upload buffer directly
+  
+      newCourse.courseThumbnail = imageUpload.secure_url;
+      await newCourse.save();
+  
+      res.json({ success: true, message: 'Course Added' });
+  
     } catch (error) {
-        res.json({success : false, message:error.message})
-
+      res.json({ success: false, message: error.message });
     }
-}
-
+  };
+  
 
 // Get Educator Courses
 export const getEducatorCourses = async (req,res)=>{
